@@ -6,33 +6,35 @@ import (
 )
 
 func main() {
-	mux := defaultMux()
-	pathsToUrls := map[string]string{
-		"/urlshort-godoc": "https://godoc.org/github.com/gophercises/urlshort",
-		"/yaml-godoc":     "https://godoc.org/gopkg.in/yaml.v2",
+	defaultMux := defaultMux()
+	urlsToPath := map[string]string{
+		"/google":  "https://google.com",
+		"/youtube": "https://youtube.com",
 	}
-	mapHandler := MapHandler(pathsToUrls, mux)
 
-	http.ListenAndServe("localhost:8080", mapHandler)
-}
-func defaultMux() *http.ServeMux {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", helloHandler)
-	return mux
+	http.ListenAndServe("localhost:8080", MapUrlstoPath(urlsToPath, defaultMux))
 }
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
+func home(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "hello world")
 }
 
-func MapHandler(pathsToUrls map[string]string, fallback http.Handler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Path
+func defaultMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", home)
 
-		if url, ok := pathsToUrls[path]; ok {
+	return mux
+}
+
+func MapUrlstoPath(urlsToPath map[string]string, fallback *http.ServeMux) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		path := r.URL.Path
+		if url, ok := urlsToPath[path]; ok {
 			http.Redirect(w, r, url, http.StatusFound)
 			return
 		}
 		fallback.ServeHTTP(w, r)
 	}
+
 }
